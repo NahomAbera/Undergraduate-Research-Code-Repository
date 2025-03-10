@@ -3,7 +3,7 @@ import csv
 import time
 from datetime import datetime
 
-ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
+ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1) #try /dev/ttyUSB* if this don't work 
 time.sleep(2)
 
 with open('sensor_data.csv', 'w', newline='') as csvfile:
