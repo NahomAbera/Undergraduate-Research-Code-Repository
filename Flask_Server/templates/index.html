@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Data Logger</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <h1>Data Logger Dashboard</h1>
+    <form method="post">
+        <label><input type="checkbox" name="gps"> Include GPS</label><br>
+        <label><input type="checkbox" name="moisture_value"> Include Soil Moisture Value</label><br>
+        <label><input type="checkbox" name="moisture_percent"> Include Soil Moisture %</label><br>
+        <label><input type="checkbox" name="temperature"> Include Soil Temperature</label><br><br>
+
+        {% if is_logging %}
+            <button type="submit" name="stop">Stop Logging</button>
+        {% else %}
+            <button type="submit" name="start">Start Logging</button>
+        {% endif %}
+    </form>
+</body>
+</html>
