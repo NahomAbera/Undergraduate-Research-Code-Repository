@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Data Logger</title>
+    <title>Data Logger Dashboard</title>
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
@@ -18,5 +18,7 @@
             <button type="submit" name="start">Start Logging</button>
         {% endif %}
     </form>
+    <br><br>
+    <a href="{{ url_for('list_downloads') }}">Download Saved CSV Files</a>
 </body>
 </html>

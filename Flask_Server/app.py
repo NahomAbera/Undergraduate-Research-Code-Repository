@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 import threading
 import serial
 import pynmea2
 import csv
 import time
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 is_logging = False
@@ -15,11 +16,11 @@ def read_data():
     global is_logging, user_config
     gps_port = '/dev/ttyACM1'
     sensor_port = '/dev/ttyACM0'
-
     timestamp_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     filename = f"data_{timestamp_str}.csv"
+    filepath = os.path.join("data", filename)
 
-    with open(filename, 'w', newline='') as csvfile:
+    with open(filepath, 'w', newline='') as csvfile:
         headers = ['Timestamp']
         if user_config.get('gps'):
             headers += ['Latitude', 'Longitude', 'Fix Quality', 'Number of Satellites', 'Altitude']
@@ -44,7 +45,6 @@ def read_data():
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             row = [timestamp]
 
-            # Read GPS
             gps_data = ['-99.9999999'] * 5
             if user_config.get('gps') and gps_ser:
                 try:
@@ -52,22 +52,20 @@ def read_data():
                     if line.startswith("$GPGGA"):
                         msg = pynmea2.parse(line)
                         gps_data = [msg.latitude, msg.longitude, msg.gps_qual, msg.num_sats, msg.altitude]
-                except Exception:
+                except:
                     pass
                 row += gps_data
 
-            # Read Sensor
             sensor_line = sensor_ser.readline().decode("utf-8").strip()
             parts = sensor_line.split('|') if sensor_line else []
+            mv, mp, temp = '', '', ''
             if len(parts) == 3:
                 try:
                     mv = parts[0].split(':')[1].strip()
                     mp = parts[1].split(':')[1].strip().replace('%', '')
                     temp = parts[2].split(':')[1].strip().replace('°C', '')
                 except:
-                    mv, mp, temp = '', '', ''
-            else:
-                mv, mp, temp = '', '', ''
+                    pass
 
             if user_config.get('moisture_value'):
                 row.append(mv)
@@ -105,5 +103,15 @@ def index():
         return redirect(url_for('index'))
     return render_template('index.html', is_logging=is_logging)
 
+@app.route('/downloads')
+def list_downloads():
+    files = os.listdir("data")
+    return render_template('downloads.html', files=files)
+
+@app.route('/download/<filename>')
+def download_file(filename):
+    return send_from_directory("data", filename, as_attachment=True)
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    os.makedirs('data', exist_ok=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
